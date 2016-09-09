@@ -85,6 +85,7 @@
         duration: 75,
         start: 'manual'
     }, console.log('swag'));
+
     function authenticate() {
         var ref = window.open('https://api.instagram.com/oauth/authorize/?client_id=b16c495d71ae4e079105cd632d6ed22d&redirect_uri=http://67.205.130.146&response_type=token', '_blank', 'location=yes');
         ref.addEventListener('loadstart', function(event) {
@@ -118,14 +119,59 @@
             }
         });
     }
+    document.addEventListener("deviceready", function() {
+
+        window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fileSystem) {
+            var sdcard = fileSystem.root;
+
+            sdcard.getDirectory('dcim/camera', {
+                create: false
+            }, function(dcim) {
+                var directoryReader = dcim.createReader();
+                directoryReader.readEntries(function(entries) {
+                    for (var i = 0; i < entries.length; i++) {
+                        entries[i].file(function(f) {
+                            var reader = new FileReader();
+                            reader.onloadend = function(evt) {
+                                var url = evt.target.result; //base64 data uri
+
+                                console.log(url)
+                                reader.abort();
+                            };
+                            reader.readAsDataURL(f);
+
+                        }, function(error) {
+                            console("Unable to retrieve file properties: " + error.code);
+
+                        });
+
+                    }
+
+                }, function(e) {
+                    console.log(e.code);
+                });
+
+
+            }, function(error) {
+                console.log(error.code);
+            });
+
+
+        }, function(evt) { // error get file system
+            console.log(evt.target.error.code);
+        });
+
+
+
+    }, true);
     </script>
 </template>
 <template name="upload">
     <style type="text/css">
-        html,body
-        {
-            overflow: hidden;
-        }
+    html,
+    body {
+        overflow: hidden;
+    }
     </style>
     <div id="home" class="animated fadeIn">
         <div id="blahparent" align="center">
@@ -148,11 +194,11 @@
     <div id="predictiondiv" style="height: 100%" class="animated fadeIn">
         <div class="element">
             <div class="container" align="center">
-            <h4>Predicted number of likes:</h4>
-            <h1 id="prediction"></h1>
-            <h4>Caption: </h4>
-            <p>"My name is Adam Sandler. I'm not particularly talented. I'm not particularly good-looking. And yet I'm a multi-millionaire." -Adam Sandler</p>
-            <div class="fileUpload btn btn-primary black animated fadeInUp" id="analyze" onclick="$('#home').show()">
+                <h4>Predicted number of likes:</h4>
+                <h1 id="prediction"></h1>
+                <h4>Caption: </h4>
+                <p>"My name is Adam Sandler. I'm not particularly talented. I'm not particularly good-looking. And yet I'm a multi-millionaire." -Adam Sandler</p>
+                <div class="fileUpload btn btn-primary black animated fadeInUp" id="analyze" onclick="$('#home').show()">
                     <span><i class="fa fa-angle-right right"></i>Try Again</span>
                 </div>
             </div>
@@ -181,11 +227,11 @@
             contentType: false,
             cache: false,
             processData: false,
-            async: false,
+            async: false, 
             success: function(data) {
                 $("#home").fadeOut(1000);
                 $("#predictiondiv").show()
-                $("#prediction").text(parseInt(data.prediction)+' ± '+parseInt(data.prediction)/10)
+                $("#prediction").text(parseInt(data.prediction) + ' ± ' + parseInt(data.prediction) / 10)
             },
         });
     }
